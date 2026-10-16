@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>国内电商平台商品接口对接表</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --line: #dde3ec;
+      --blue: #2457d6;
+      --blue-soft: #eef4ff;
+      --green: #087a55;
+      --green-soft: #eaf8f2;
+      --amber: #9a5a00;
+      --amber-soft: #fff5df;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --shadow: 0 10px 28px rgba(28, 43, 77, .08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, sans-serif;
+      line-height: 1.65;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #eef2f7;
+      color: #17376f;
+      font-family: Consolas, "SFMono-Regular", monospace;
+      word-break: break-word;
+    }
+    .page { width: min(1500px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 56px; }
+    .hero {
+      padding: 28px 30px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #17366d 0%, #2457d6 70%, #3a76ef 100%);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(24px, 3vw, 36px); font-weight: 600; }
+    .hero p { margin: 0; color: rgba(255,255,255,.85); }
+    .hero-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .hero-chip { padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.14); font-size: 13px; }
+
+    .section { margin-top: 22px; }
+    .panel {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: 0 4px 16px rgba(28, 43, 77, .045);
+    }
+    .section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .section-title h2 { margin: 0; font-size: 20px; }
+    .section-title p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status.ok { color: var(--green); background: var(--green-soft); }
+    .status.conditional { color: var(--amber); background: var(--amber-soft); }
+    .status.warning { color: var(--red); background: var(--red-soft); }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.1fr .8fr .8fr 1.6fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
+    select, input, button {
+      min-height: 40px;
+      border: 1px solid #cfd7e4;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+    select, input { width: 100%; padding: 8px 10px; }
+    button { padding: 8px 15px; cursor: pointer; }
+    button.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+    button.secondary { background: #fff; }
+    button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(36, 87, 214, .22);
+      outline-offset: 2px;
+    }
+    .result-count { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+    .pick { display: grid; gap: 6px; }
+    .pick strong { color: #17376f; }
+    .pick small { color: var(--muted); font-size: 12px; }
+    .tag-main, .tag-extra {
+      display: inline-block;
+      width: fit-content;
+      margin-right: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tag-main { color: var(--green); background: var(--green-soft); }
+    .tag-extra { color: var(--amber); background: var(--amber-soft); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; min-width: 1160px; border-collapse: collapse; background: var(--surface); }
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 12px 11px;
+      background: #edf2f8;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      white-space: nowrap;
+    }
+    tbody td { padding: 13px 11px; border-top: 1px solid var(--line); vertical-align: top; font-size: 13px; }
+    tbody tr:hover { background: #fbfcfe; }
+    .platform { font-weight: 600; white-space: nowrap; }
+    .capability { white-space: nowrap; }
+    .method-list { display: grid; gap: 5px; }
+    .method-list code { width: fit-content; }
+    .fit-yes { color: var(--green); font-weight: 600; }
+    .fit-partial { color: var(--amber); font-weight: 600; }
+    .empty-state { display: none; padding: 26px; text-align: center; color: var(--muted); }
+
+    .flow-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .flow-card { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
+    .flow-card h3 { margin: 0 0 6px; font-size: 17px; }
+    .flow-card > p { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr 34px 1fr 34px 1fr;
+      align-items: stretch;
+      gap: 4px;
+    }
+    .flow.vertical { grid-template-columns: 1fr; }
+    .node {
+      display: grid;
+      place-content: center;
+      min-height: 78px;
+      padding: 10px;
+      border: 1px solid #c9d6ee;
+      border-radius: 10px;
+      background: #fff;
+      text-align: center;
+      font-size: 13px;
+    }
+    .node strong { display: block; color: #17376f; }
+    .arrow { display: grid; place-content: center; color: var(--blue); font-size: 24px; font-weight: 600; }
+    .vertical .arrow { min-height: 28px; transform: rotate(90deg); }
+    .branch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+    }
+    .branch .node { min-height: 66px; }
+    .flow-note { margin-top: 12px; padding: 10px 12px; border-left: 3px solid var(--amber); background: var(--amber-soft); font-size: 13px; }
+
+    .rules { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .rule { padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-soft); }
+    .rule strong { display: block; margin-bottom: 5px; }
+    .rule p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .source-list { margin: 0; padding-left: 20px; columns: 2; column-gap: 36px; }
+    .source-list li { margin-bottom: 8px; break-inside: avoid; }
+    .footnote { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--amber-soft); color: #684300; font-size: 13px; }
+
+    @media (max-width: 980px) {
+      .filters { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .flow-grid, .rules { grid-template-columns: 1fr; }
+      .source-list { columns: 1; }
+    }
+    @media (max-width: 680px) {
+      .page { width: min(100% - 20px, 1500px); padding-top: 14px; }
+      .hero, .panel { padding: 18px; }
+      .filters { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow > .arrow { min-height: 28px; transform: rotate(90deg); }
+      .branch { grid-template-columns: 1fr; }
+      .section-title { align-items: flex-start; flex-direction: column; }
+    }
+    @media print {
+      body { background: #fff; }
+      .page { width: 100%; padding: 0; }
+      .hero { box-shadow: none; border-radius: 0; }
+      .filters, .print-hide { display: none !important; }
+      .panel { box-shadow: none; break-inside: avoid; }
+      .table-wrap { overflow: visible; }
+      table { min-width: 0; font-size: 9px; }
+      thead th { position: static; }
+      tbody td, thead th { padding: 6px; }
+      .flow-grid { grid-template-columns: 1fr; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <h1>国内电商平台商品接口对接表</h1>
+      <p>淘宝、天猫、京东、拼多多、1688｜商品拉取、SKU库存更新、SKU价格更新</p>
+      <div class="hero-meta">
+        <span class="hero-chip">核验日期：2026-10-16</span>
+        <span class="hero-chip">用途：ERP / 商品中心开发交接</span>
+        <span class="hero-chip">不包含任何店铺Token、AppKey或秘钥</span>
+      </div>
+    </header>
+
+    <section class="section panel" aria-labelledby="scope-title">
+      <div class="section-title">
+        <div>
+          <h2 id="scope-title">核验口径</h2>
+          <p>“接口存在”不等于当前应用一定拥有调用权限。</p>
+        </div>
+        <div class="legend">
+          <span class="status ok">● 官方文档确认</span>
+          <span class="status conditional">● 条件可用</span>
+          <span class="status warning">● 上线前需实店验证</span>
+        </div>
+      </div>
+      <div class="rules">
+        <div class="rule"><strong>文档层验证</strong><p>核对接口仍存在、请求结构和能力是否覆盖对应诉求。</p></div>
+        <div class="rule"><strong>权限层验证</strong><p>应用类型、权限包、店铺授权和商品业务模式仍可能限制调用。</p></div>
+        <div class="rule"><strong>生产层验证</strong><p>写接口未对线上商品执行。上线前使用测试SKU验证金额单位、幂等和结果回读。</p></div>
+      </div>
+    </section>
+
+    <section class="section panel" aria-labelledby="choice-title">
+      <div class="section-title">
+        <div>
+          <h2 id="choice-title">直接照这个选</h2>
+          <p>主用接口用于日常流程；补充接口只在全量拉取、补详情或特殊商品时调用。</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>平台</th><th>拉取商品数据</th><th>修改SKU库存</th><th>修改SKU价格</th><th>一句话结论</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="platform">淘宝</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>taobao.items.onsale.get</code></span><span><span class="tag-extra">下架补充</span><code>taobao.items.inventory.get</code></span><span><span class="tag-extra">详情补充</span><code>taobao.item.seller.get</code></span></div></td>
+              <td><div class="pick"><strong><code>taobao.skus.quantity.update</code></strong><small>批量更新SKU，日常首选；无SKU商品才使用 item.quantity.update。</small></div></td>
+              <td><div class="pick"><strong><code>taobao.item.sku.price.update</code></strong><small>一次修改一个SKU。</small></div></td>
+              <td>全量商品拉取需要“在售列表+下架列表+详情”组合；写库存只选批量SKU接口。</td>
+            </tr>
+            <tr>
+              <td class="platform">天猫</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>taobao.items.onsale.get.tmall</code></span><span><span class="tag-extra">详情补充</span><code>taobao.item.get.tmall</code></span><span><span class="tag-extra">已知ID批量</span><code>taobao.items.seller.list.get.tmall</code></span></div></td>
+              <td><div class="pick"><strong><code>tmall.item.quantity.update</code></strong><small>同一个商品下的SKU批量更新。</small></div></td>
+              <td><div class="pick"><strong><code>tmall.item.price.update</code></strong><small>同一个商品下的SKU批量改价。</small></div></td>
+              <td>天猫库存和价格直接用 tmall 专用接口，不要复用淘宝写接口。</td>
+            </tr>
+            <tr>
+              <td class="platform">京东</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>listProducts</code></span><span><span class="tag-extra">SKU补充</span><code>listSkus</code></span><span><span class="tag-extra">详情补充</span><code>getProduct</code></span></div></td>
+              <td><div class="pick"><strong><code>batchPutSkuStock</code></strong><small>PUT sp-product/v0/sku-stocks/batch。</small></div></td>
+              <td><div class="pick"><strong><code>jingdong.price.write.updateSkuJdPrice</code></strong><small>POP商品一次一个SKU；自营需另走供应商价格流程。</small></div></td>
+              <td>商品列表、SKU列表和详情不是三选一，而是主列表后按需补齐。</td>
+            </tr>
+            <tr>
+              <td class="platform">拼多多</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>pdd.goods.list.get</code></span><span><span class="tag-extra">详情补充</span><code>pdd.goods.information.get</code></span><span><span class="tag-extra">SKU补充</span><code>pdd.goods.skus.get</code></span></div></td>
+              <td><div class="pick"><strong><code>pdd.goods.quantity.update</code></strong><small>普通SKU库存更新。</small></div></td>
+              <td><div class="pick"><strong><code>pdd.goods.sku.price.update</code></strong><small>价格单位为分。</small></div></td>
+              <td>日常只记住 list、quantity、sku.price 三个主接口；详情接口跟在列表后调用。</td>
+            </tr>
+            <tr>
+              <td class="platform">1688</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>alibaba.product.getList</code></span><span><span class="tag-extra">详情补充</span><code>alibaba.product.get</code></span></div></td>
+              <td><div class="pick"><strong><code>alibaba.product.modifyStock</code></strong><small>库存SKU字段实际需要映射商品 specId。</small></div></td>
+              <td><div class="pick"><strong><code>alibaba.product.edit</code></strong><small>先查完整详情再合并修改价格。</small></div></td>
+              <td>库存可直接专用接口；价格没有轻量改价，必须“先查后编辑”。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section panel print-hide" aria-labelledby="filter-title">
+      <div class="section-title"><h2 id="filter-title">筛选接口</h2><p>支持按平台、业务能力和关键词筛选。</p></div>
+      <form class="filters" id="filterForm" onsubmit="return false">
+        <label>平台
+          <select id="platformFilter">
+            <option value="">全部平台</option>
+            <option>淘宝</option><option>天猫</option><option>京东</option><option>拼多多</option><option>1688</option>
+          </select>
+        </label>
+        <label>业务能力
+          <select id="capabilityFilter">
+            <option value="">全部能力</option>
+            <option value="拉取商品">拉取商品</option>
+            <option value="修改SKU库存">修改SKU库存</option>
+            <option value="修改SKU价格">修改SKU价格</option>
+          </select>
+        </label>
+        <label>接口或注意点关键词
+          <input id="keywordFilter" type="search" placeholder="例如：增量、specId、分、批量">
+        </label>
+        <button class="secondary" id="resetButton" type="button">清空筛选</button>
+      </form>
+      <p class="result-count" id="resultCount" aria-live="polite"></p>
+    </section>
+
+    <section class="section panel" aria-labelledby="matrix-title">
+      <div class="section-title"><h2 id="matrix-title">接口矩阵</h2><p>与上方选型表保持一致：主用接口直接调用，补充接口只在对应场景调用。</p></div>
+      <div class="table-wrap">
+        <table id="apiTable">
+          <thead>
+            <tr>
+              <th>平台</th><th>业务能力</th><th>使用方式 / 接口</th><th>关键传参 / 数据结构</th><th>主要限制与注意点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-platform="淘宝" data-capability="拉取商品" data-status="official">
+              <td class="platform">淘宝</td><td class="capability">拉取商品</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>taobao.items.onsale.get</code></span><span><span class="tag-extra">下架补充</span><code>taobao.items.inventory.get</code></span><span><span class="tag-extra">详情补充</span><code>taobao.item.seller.get</code></span></div></td>
+              <td>先分别枚举在售、仓库/下架商品，再按 <code>num_iid</code> 查询详情。</td>
+              <td>只拉在售接口会漏掉仓库和下架商品；<code>fields</code> 未声明的字段通常不会返回。</td>
+            </tr>
+            <tr data-platform="淘宝" data-capability="修改SKU库存" data-status="official">
+              <td class="platform">淘宝</td><td class="capability">修改SKU库存</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>taobao.skus.quantity.update</code></span><span><span class="tag-extra">无SKU商品</span><code>taobao.item.quantity.update</code></span></div></td>
+              <td><code>skuid_quantities=123:10;456:20</code>；<code>type=1</code>全量，<code>type=2</code>增量。</td>
+              <td>批量只支持同一商品下SKU，约20条；仓库存模式需改走仓库存接口。</td>
+            </tr>
+            <tr data-platform="淘宝" data-capability="修改SKU价格" data-status="official">
+              <td class="platform">淘宝</td><td class="capability">修改SKU价格</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>taobao.item.sku.price.update</code></span><small>一次修改一个SKU。</small></div></td>
+              <td><code>num_iid + properties + price</code>，价格单位为元。</td>
+              <td>主要通过销售属性组合 <code>properties</code> 定位SKU，不应只依赖SKU展示名称。</td>
+            </tr>
+
+            <tr data-platform="天猫" data-capability="拉取商品" data-status="official">
+              <td class="platform">天猫</td><td class="capability">拉取商品</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>taobao.items.onsale.get.tmall</code></span><span><span class="tag-extra">详情补充</span><code>taobao.item.get.tmall</code></span><span><span class="tag-extra">已知ID批量</span><code>taobao.items.seller.list.get.tmall</code></span></div></td>
+              <td><code>items.seller.list.get.tmall</code> 按商品ID列表批量查询详情。</td>
+              <td>天猫存在 <code>.tmall</code> 分流方法；批量详情接口不能替代全店分页枚举。</td>
+            </tr>
+            <tr data-platform="天猫" data-capability="修改SKU库存" data-status="official">
+              <td class="platform">天猫</td><td class="capability">修改SKU库存</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>tmall.item.quantity.update</code></span><small>同一个商品下的SKU批量更新。</small></div></td>
+              <td><code>sku_quantities[]</code> 对象数组；<code>options.type</code> 区分全量/增量；增量建议传 <code>outer_biz_key</code>。</td>
+              <td>无SKU商品与有SKU商品的库存字段不同；增量重试必须防重。</td>
+            </tr>
+            <tr data-platform="天猫" data-capability="修改SKU价格" data-status="official">
+              <td class="platform">天猫</td><td class="capability">修改SKU价格</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>tmall.item.price.update</code></span><small>同一个商品下的SKU批量改价。</small></div></td>
+              <td><code>sku_prices[]</code>；可按 <code>sku_id</code>、<code>properties</code> 或 <code>outer_id</code> 定位。</td>
+              <td>同一次请求不要混合SKU定位方式；活动商品仍可能受营销价格约束。</td>
+            </tr>
+
+            <tr data-platform="京东" data-capability="拉取商品" data-status="official">
+              <td class="platform">京东</td><td class="capability">拉取商品</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>listProducts</code></span><span><span class="tag-extra">SKU补充</span><code>listSkus</code></span><span><span class="tag-extra">详情补充</span><code>getProduct</code></span></div></td>
+              <td><code>scopeSet</code>、<code>page</code>、<code>pageSize</code>；请求头 <code>X-JOS-Request-Identity</code> 区分 <code>vender/supplier</code>。</td>
+              <td>仅用商品列表可能漏非主商品SKU；POP前10万条、自营前1万条存在深分页范围限制。</td>
+            </tr>
+            <tr data-platform="京东" data-capability="修改SKU库存" data-status="official">
+              <td class="platform">京东</td><td class="capability">修改SKU库存</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>batchPutSkuStock</code></span><small>PUT sp-product/v0/sku-stocks/batch</small></div></td>
+              <td><code>updateModel</code>、<code>stockRfID</code>、<code>putSkuStockList[]</code>；全国仓 <code>warehouseId=0</code>。</td>
+              <td><code>warehouseId</code> 与 <code>storeId</code> 只能传一个；官方推荐增量 <code>incrStockIn</code>。</td>
+            </tr>
+            <tr data-platform="京东" data-capability="修改SKU价格" data-status="conditional">
+              <td class="platform">京东</td><td class="capability">修改SKU价格</td>
+              <td><div class="pick"><span><span class="tag-main">POP主用</span><code>jingdong.price.write.updateSkuJdPrice</code></span><span><span class="tag-extra">自营商品</span>走供应商价格流程</span></div></td>
+              <td><code>skuId + jdPrice</code>，一次一个SKU。</td>
+              <td>修改基础京东价，不等于促销到手价；自营供应商价格流程不能直接复用POP接口。</td>
+            </tr>
+
+            <tr data-platform="拼多多" data-capability="拉取商品" data-status="conditional">
+              <td class="platform">拼多多</td><td class="capability">拉取商品</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>pdd.goods.list.get</code></span><span><span class="tag-extra">详情补充</span><code>pdd.goods.information.get</code></span><span><span class="tag-extra">SKU补充</span><code>pdd.goods.skus.get</code></span></div></td>
+              <td>分页列表取得 <code>goods_id</code>，再补商品详情和SKU详情。</td>
+              <td><code>goods_id</code>、<code>sku_id</code> 使用64位整数；不要用Java <code>int</code>。</td>
+            </tr>
+            <tr data-platform="拼多多" data-capability="修改SKU库存" data-status="conditional">
+              <td class="platform">拼多多</td><td class="capability">修改SKU库存</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>pdd.goods.quantity.update</code></span><small>普通SKU库存更新。</small></div></td>
+              <td><code>sku_id</code>、<code>quantity</code>、<code>update_type</code>，区分全量和增量。</td>
+              <td>资源位、秒杀等活动商品可能禁止减库存；日历库存和门票商品需走专用结构。</td>
+            </tr>
+            <tr data-platform="拼多多" data-capability="修改SKU价格" data-status="conditional">
+              <td class="platform">拼多多</td><td class="capability">修改SKU价格</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>pdd.goods.sku.price.update</code></span><small>价格单位为分。</small></div></td>
+              <td><code>price</code>、<code>multi_price</code> 等金额字段单位为分。</td>
+              <td>活动最低价、单买价/团购价关系和商品审核均可能阻止改价。</td>
+            </tr>
+
+            <tr data-platform="1688" data-capability="拉取商品" data-status="conditional">
+              <td class="platform">1688</td><td class="capability">拉取商品</td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>alibaba.product.getList</code></span><span><span class="tag-extra">详情补充</span><code>alibaba.product.get</code></span></div></td>
+              <td>列表分页取得商品ID，详情补全SKU、报价模型和库存。</td>
+              <td>B2B商品可能是SKU定价，也可能是数量区间定价，不能假定统一SKU售价。</td>
+            </tr>
+            <tr data-platform="1688" data-capability="修改SKU库存" data-status="conditional">
+              <td class="platform">1688</td><td class="capability">修改SKU库存</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>alibaba.product.modifyStock</code></span><small>库存SKU字段实际传商品 specId。</small></div></td>
+              <td><code>productStockChange[]</code>、<code>increaseModify</code>、<code>webSite=1688</code>。</td>
+              <td>关键特例：<code>skuStocks[].skuId</code> 字段实际传商品详情中的 <code>specId</code>。</td>
+            </tr>
+            <tr data-platform="1688" data-capability="修改SKU价格" data-status="conditional">
+              <td class="platform">1688</td><td class="capability">修改SKU价格</td>
+              <td><div class="pick"><span><span class="tag-main">主用</span><code>alibaba.product.edit</code></span><span><span class="tag-extra">前置查询</span><code>alibaba.product.get</code></span><small>先查完整详情，再合并修改价格。</small></div></td>
+              <td>先读取完整 <code>productInfo</code>，修改 <code>skuInfos[].price</code> 或 <code>priceRanges</code> 后整体提交。</td>
+              <td>不是轻量单字段改价；必须先识别 <code>quoteType</code>，避免覆盖规格、区间价或起订量。</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty-state" id="emptyState">没有符合筛选条件的接口。</div>
+      </div>
+    </section>
+
+    <section class="section panel" aria-labelledby="flow-title">
+      <div class="section-title"><h2 id="flow-title">复杂接口调用流程</h2><p>仅绘制需要组合调用或存在特殊结构的流程。</p></div>
+      <div class="flow-grid">
+        <article class="flow-card">
+          <h3>淘宝 / 天猫全量商品同步</h3>
+          <p>在售与仓库商品分别枚举，随后补齐详情。</p>
+          <div class="flow" aria-label="淘宝天猫商品同步流程">
+            <div class="node"><strong>在售列表</strong>onsale.get</div><div class="arrow">→</div>
+            <div class="node"><strong>合并商品ID</strong>去重 num_iid</div><div class="arrow">→</div>
+            <div class="node"><strong>详情补全</strong>seller.get / list.get</div>
+          </div>
+          <div class="flow-note">同时调用库存/仓库商品列表，否则下架商品会被漏掉。</div>
+        </article>
+
+        <article class="flow-card">
+          <h3>京东全量商品同步</h3>
+          <p>商品、SKU和详情三类接口承担不同覆盖范围。</p>
+          <div class="flow" aria-label="京东商品同步流程">
+            <div class="node"><strong>listProducts</strong>分页商品列表</div><div class="arrow">→</div>
+            <div class="node"><strong>listSkus</strong>补非主商品SKU</div><div class="arrow">→</div>
+            <div class="node"><strong>getProduct</strong>补完整详情</div>
+          </div>
+          <div class="flow-note">使用修改时间增量同步；超过深分页上限时按时间窗口拆分。</div>
+        </article>
+
+        <article class="flow-card">
+          <h3>京东库存更新分支</h3>
+          <p>先确定更新模式，再选择对应数量字段。</p>
+          <div class="flow vertical" aria-label="京东库存更新流程">
+            <div class="node"><strong>生成 stockRfID</strong>每个业务动作唯一，防止重复处理</div>
+            <div class="arrow">→</div>
+            <div class="branch">
+              <div class="node"><strong>全量 fullStockIn</strong>传 stockNum</div>
+              <div class="node"><strong>增量 incrStockIn</strong>传 incrStockNum，推荐</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="node"><strong>选择库存位置</strong>warehouseId 或 storeId 二选一</div>
+          </div>
+        </article>
+
+        <article class="flow-card">
+          <h3>1688安全改价</h3>
+          <p>必须保留原商品完整结构，避免价格之外的字段被覆盖。</p>
+          <div class="flow" aria-label="1688商品改价流程">
+            <div class="node"><strong>product.get</strong>读取完整商品</div><div class="arrow">→</div>
+            <div class="node"><strong>识别 quoteType</strong>SKU价或区间价</div><div class="arrow">→</div>
+            <div class="node"><strong>product.edit</strong>合并原结构提交</div>
+          </div>
+          <div class="flow-note">不要只提交 productId 和 price；先保留规格、起订量、单位与区间报价。</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section panel" aria-labelledby="model-title">
+      <div class="section-title"><h2 id="model-title">ERP统一字段建议</h2><p>统一业务语义，不统一平台请求体。</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ERP字段</th><th>淘宝 / 天猫</th><th>京东</th><th>拼多多</th><th>1688</th><th>转换规则</th></tr></thead>
+          <tbody>
+            <tr><td><code>product_id</code></td><td>num_iid / item_id</td><td>productId</td><td>goods_id</td><td>productId</td><td>统一使用字符串或64位整数存储</td></tr>
+            <tr><td><code>platform_sku_id</code></td><td>sku_id / properties</td><td>skuId</td><td>sku_id</td><td>保存skuId，同时单独保存specId</td><td>不要把不同平台SKU标识混为一个字段</td></tr>
+            <tr><td><code>seller_sku</code></td><td>outer_id</td><td>outerId（商家SKU编码）</td><td>outer_id / out_sku_sn</td><td>skuInfo.cargoNumber</td><td>商家自定义编码；唯一键建议使用“平台+店铺+seller_sku”</td></tr>
+            <tr><td><code>price</code></td><td>元，小数</td><td>元，小数</td><td>分，整数</td><td>元 / 区间价</td><td>ERP内部建议统一使用“分”的长整型</td></tr>
+            <tr><td><code>stock_update_mode</code></td><td>type=1/2</td><td>fullStockIn/incrStockIn</td><td>update_type=1/2</td><td>increaseModify=false/true</td><td>库存更新语义：ABSOLUTE目标库存 / INCREMENT增减量</td></tr>
+            <tr><td><code>idempotency_key</code></td><td>天猫 outer_biz_key</td><td>stockRfID</td><td>ERP端维护</td><td>ERP端维护</td><td>库存变更防重号，防止超时重试造成重复增减</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="rules" style="margin-top:12px">
+        <div class="rule"><strong>seller_sku｜商家SKU编码</strong><p>由商家或ERP维护，用于内部货品映射；它不是平台生成的SKU ID。不同店铺可能重复，因此不建议单字段全局唯一。</p></div>
+        <div class="rule"><strong>stock_update_mode｜库存更新方式</strong><p>ABSOLUTE表示“库存最终改成20”；INCREMENT表示“在现有库存上增加或减少20”。这是ERP统一字段，不是某个平台的原始字段名。</p></div>
+        <div class="rule"><strong>idempotency_key｜库存变更防重号</strong><p>同一业务重试时沿用同一个值，防止“库存减1”的请求因超时重发后被执行两次。</p></div>
+      </div>
+    </section>
+
+    <section class="section panel" aria-labelledby="source-title">
+      <div class="section-title"><h2 id="source-title">核验文档入口</h2><p>优先列出官方文档。</p></div>
+      <ul class="source-list">
+        <li><a href="https://developer.alibaba.com/docs/api.htm?apiId=27" target="_blank" rel="noopener">淘宝商品接口目录</a></li>
+        <li><a href="https://developer.alibaba.com/docs/api.htm?apiId=21169" target="_blank" rel="noopener">淘宝SKU批量库存修改</a></li>
+        <li><a href="https://developer.alibaba.com/docs/api.htm?apiId=10928" target="_blank" rel="noopener">淘宝SKU价格修改</a></li>
+        <li><a href="https://developer.alibaba.com/docs/api.htm?apiId=26178&amp;scopeId=12166" target="_blank" rel="noopener">天猫库存更新</a></li>
+        <li><a href="https://developer.alibaba.com/docs/api.htm?apiId=24249" target="_blank" rel="noopener">天猫商品/SKU价格更新</a></li>
+        <li><a href="https://open.jd.com/v2/#/doc/api?apiCateId=200375&amp;apiId=100508&amp;apiName=listProducts&amp;gwType=1" target="_blank" rel="noopener">京东商品列表 listProducts</a></li>
+        <li><a href="https://open.jd.com/v2/#/doc/api?apiCateId=200375&amp;apiId=100588&amp;apiName=getProduct&amp;gwType=1" target="_blank" rel="noopener">京东商品详情 getProduct</a></li>
+        <li><a href="https://open.jd.com/v2/#/doc/api?apiCateId=200375&amp;apiId=100671&amp;apiName=batchPutSkuStock&amp;gwType=1" target="_blank" rel="noopener">京东批量设置SKU库存</a></li>
+        <li><a href="https://jos.jd.com/apilist?apiGroupId=21&amp;apiGroupName=%E5%95%86%E5%AE%B6%E5%BA%94%E7%94%A8" target="_blank" rel="noopener">京东API 1.0商品接口目录</a></li>
+        <li><a href="https://open.pinduoduo.com/" target="_blank" rel="noopener">拼多多开放平台</a></li>
+        <li><a href="https://open.1688.com/" target="_blank" rel="noopener">1688开放平台</a></li>
+        <li><a href="https://alibaba-pdf.oss-ap-southeast-1.aliyuncs.com/1688%20Cloud%20Hub%20API%20Reference-0723.pdf" target="_blank" rel="noopener">1688 Cloud Hub API Reference</a></li>
+      </ul>
+      <div class="footnote">
+        拼多多与1688的当前官方详情页在本次核验环境中未能直接读取完整字段，因此标记为“条件可用”。正式接入时，应使用当前应用权限先执行列表/详情读接口，再用测试SKU验证库存与价格写接口。
+      </div>
+    </section>
+
+    <section class="section panel print-hide">
+      <div class="section-title">
+        <div><h2>导出</h2><p>可直接使用浏览器打印功能保存为PDF。</p></div>
+        <button class="primary" type="button" onclick="window.print()">打印 / 另存为PDF</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const platform = document.getElementById('platformFilter');
+      const capability = document.getElementById('capabilityFilter');
+      const keyword = document.getElementById('keywordFilter');
+      const reset = document.getElementById('resetButton');
+      const rows = [...document.querySelectorAll('#apiTable tbody tr')];
+      const count = document.getElementById('resultCount');
+      const empty = document.getElementById('emptyState');
+
+      function applyFilters() {
+        const p = platform.value;
+        const c = capability.value;
+        const q = keyword.value.trim().toLowerCase();
+        let visible = 0;
+        rows.forEach(row => {
+          const matched = (!p || row.dataset.platform === p)
+            && (!c || row.dataset.capability === c)
+            && (!q || row.textContent.toLowerCase().includes(q));
+          row.hidden = !matched;
+          if (matched) visible += 1;
+        });
+        count.textContent = `当前显示 ${visible} / ${rows.length} 条接口记录`;
+        empty.style.display = visible ? 'none' : 'block';
+      }
+
+      [platform, capability].forEach(el => el.addEventListener('change', applyFilters));
+      keyword.addEventListener('input', applyFilters);
+      reset.addEventListener('click', () => {
+        platform.value = '';
+        capability.value = '';
+        keyword.value = '';
+        applyFilters();
+      });
+      applyFilters();
+    })();
+  </script>
+</body>
+</html>
