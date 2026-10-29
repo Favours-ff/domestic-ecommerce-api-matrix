@@ -282,7 +282,7 @@
             </tr>
             <tr>
               <td class="platform">拼多多</td>
-              <td><div class="pick"><span><span class="tag-main">主列表</span><code>pdd.goods.list.get</code></span><span><span class="tag-extra">详情补充</span><code>pdd.goods.information.get</code></span><span><span class="tag-extra">SKU补充</span><code>pdd.goods.skus.get</code></span></div></td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>pdd.goods.list.get</code></span><span><span class="tag-extra">详情及SKU补充</span><code>pdd.goods.detail.get</code></span></div></td>
               <td><div class="pick"><strong><code>pdd.goods.quantity.update</code></strong><small>普通SKU库存更新。</small></div></td>
               <td><div class="pick"><strong><code>pdd.goods.sku.price.update</code></strong><small>价格单位为分。</small></div></td>
               <td>日常只记住 list、quantity、sku.price 三个主接口；详情接口跟在列表后调用。</td>
@@ -393,7 +393,7 @@
 
             <tr data-platform="拼多多" data-capability="拉取商品" data-status="conditional">
               <td class="platform">拼多多</td><td class="capability">拉取商品</td>
-              <td><div class="pick"><span><span class="tag-main">主列表</span><code>pdd.goods.list.get</code></span><span><span class="tag-extra">详情补充</span><code>pdd.goods.information.get</code></span><span><span class="tag-extra">SKU补充</span><code>pdd.goods.skus.get</code></span></div></td>
+              <td><div class="pick"><span><span class="tag-main">主列表</span><code>pdd.goods.list.get</code></span><span><span class="tag-extra">详情及SKU补充</span><code>pdd.goods.detail.get</code></span></div></td>
               <td>分页列表取得 <code>goods_id</code>，再补商品详情和SKU详情。</td>
               <td><code>goods_id</code>、<code>sku_id</code> 使用64位整数；不要用Java <code>int</code>。</td>
             </tr>
